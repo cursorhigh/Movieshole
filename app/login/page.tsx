@@ -73,7 +73,7 @@ export default function Login() {
                                     Login
                                 </Button>
                                 <Button variant="outline" className="w-full">
-                                    Login with Google
+                                    Continue with Google
                                 </Button>
                             </div>
                             <div className="mt-4 text-center text-sm grid gap-2">

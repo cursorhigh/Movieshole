@@ -2,8 +2,9 @@
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import Link from "next/link";
-import { useState } from 'react'; // Move useState import to after the "use client" directive
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { signIn } from "next-auth/react";
 import {
     Card,
     CardContent,
@@ -19,12 +20,35 @@ export default function SignUp() {
     const [randomLogo, setRandomLogo] = useState(Math.random() < 0.5 ? '/logo.png' : '/logo2.png');
     const [isFlipped, setIsFlipped] = useState(Math.random() < 0.5);
     const [showPassword, setShowPassword] = useState(false);
+    const [password, setPassword] = useState('');
+
     const toggleFlip = () => {
         setIsFlipped(!isFlipped);
     };
+    const handleGoogleLogin = async () => {
+        await signIn('google');
+    };
+
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
     };
+
+    const generateStrongPassword = (length = 12) => {
+        const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
+        let password = "";
+        for (let i = 0, n = charset.length; i < length; ++i) {
+            password += charset.charAt(Math.floor(Math.random() * n));
+        }
+
+        return password;
+    };
+
+    const handleStrongPasswordClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        e.preventDefault();
+        const newPassword = generateStrongPassword();
+        setPassword(newPassword);
+    };
+
     return (
         <div className="flex flex-col justify-between items-center h-screen">
             <div className="pt-2">
@@ -41,7 +65,7 @@ export default function SignUp() {
                         <CardHeader>
                             <CardTitle className="text-4xl flex justify-center">Sign Up</CardTitle>
                             <CardDescription>
-                                MoviesHole Made with love By Swadhin : )    
+                                MoviesHole Made with love By Swadhin : )
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -58,9 +82,19 @@ export default function SignUp() {
                                 <div className="grid gap-2">
                                     <div className="flex items-center">
                                         <Label htmlFor="password">Password</Label>
+                                        <Link href="#" className="ml-auto inline-block text-sm underline" onClick={handleStrongPasswordClick}>
+                                            Get a Strong password?
+                                        </Link>
                                     </div>
                                     <div className="relative w-full">
-                                        <Input id="password" type={showPassword ? 'text' : 'password'} required placeholder="Password" />
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            required
+                                            placeholder="Password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
                                         <button className="absolute right-5 top-1/2 transform -translate-y-1/2" type="button" onClick={toggleShowPassword}>
                                             {showPassword ? <EyeOff /> : <Eye />}
                                         </button>
@@ -69,7 +103,7 @@ export default function SignUp() {
                                 <Button type="submit" className="w-full">
                                     Sign Up
                                 </Button>
-                                <Button variant="outline" className="w-full">
+                                <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
                                     Continue with Google
                                 </Button>
                             </div>
