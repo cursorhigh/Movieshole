@@ -6,6 +6,9 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 import LoadingSpinner from '@/components/loading';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TriangleAlert } from 'lucide-react';
+
 import {
     Card,
     CardContent,
@@ -19,14 +22,11 @@ import { Eye, EyeOff } from 'lucide-react';
 
 export default function SignUp() {
     const [randomLogo, setRandomLogo] = useState(Math.random() < 0.5 ? '/logo.png' : '/logo2.png');
-    const [isFlipped, setIsFlipped] = useState(Math.random() < 0.5);
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-
-    const toggleFlip = () => {
-        setIsFlipped(!isFlipped);
-    };
+    const [error, setError] = useState<string | null>(null);
+    const [isFlipped, setIsFlipped] = useState(Math.random() < 0.5);
 
     const handleGoogleLogin = async () => {
         setLoading(true);
@@ -36,7 +36,41 @@ export default function SignUp() {
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
     };
+    
+    const handleLogin = async () => {
+        setLoading(true);
+        setError(null);
 
+        const emailElement = document.getElementById('email') as HTMLInputElement;
+        const passwordElement = document.getElementById('password') as HTMLInputElement;
+
+        const email = emailElement ? emailElement.value : '';
+        const password = passwordElement ? passwordElement.value : '';
+        if (!email) {
+            setError('Email cannot be empty');
+            setLoading(false);
+            return;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            setError('Invalid email format');
+            console.error('Invalid email format');
+            setLoading(false);
+            return;
+        }
+
+        if (!password || password.trim().length === 0 ) {
+            setError('Password cannot be empty');
+            console.error('Password cannot be empty');
+            setLoading(false);
+            return;
+        }
+
+        setLoading(false);
+    }
+    const toggleFlip = () => {
+        setIsFlipped(!isFlipped);
+    };
     const generateStrongPassword = (length = 12) => {
         const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
         let password = "";
@@ -54,8 +88,16 @@ export default function SignUp() {
     };
 
     return (
+        <div className="relative">
+            {error && (
+               <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+               <TriangleAlert className="inline-block align-text-bottom" />
+               <span className="ml-2 ">{error}</span>
+           </div>
+
+            )}
         <div className="flex flex-col justify-between items-center h-screen">
-            {loading && <LoadingSpinner />} {/* Show loading spinner when loading */}
+            {loading && <LoadingSpinner />} 
             <div className="pt-2">
                 <img
                     src={randomLogo}
@@ -105,7 +147,7 @@ export default function SignUp() {
                                         </button>
                                     </div>
                                 </div>
-                                <Button type="submit" className="w-full">
+                                <Button  className="w-full" onClick={handleLogin}>
                                     Sign Up
                                 </Button>
                                 <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
@@ -125,6 +167,7 @@ export default function SignUp() {
             <div className="flex justify-center pt-2 mb-8">
                 <ThemeSwitcher />
             </div>
+        </div>
         </div>
     );
 }
