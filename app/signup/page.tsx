@@ -1,10 +1,11 @@
-"use client"
+'use client'
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import Link from "next/link";
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
+import LoadingSpinner from '@/components/loading';
 import {
     Card,
     CardContent,
@@ -21,11 +22,14 @@ export default function SignUp() {
     const [isFlipped, setIsFlipped] = useState(Math.random() < 0.5);
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const toggleFlip = () => {
         setIsFlipped(!isFlipped);
     };
+
     const handleGoogleLogin = async () => {
+        setLoading(true);
         await signIn('google');
     };
 
@@ -51,6 +55,7 @@ export default function SignUp() {
 
     return (
         <div className="flex flex-col justify-between items-center h-screen">
+            {loading && <LoadingSpinner />} {/* Show loading spinner when loading */}
             <div className="pt-2">
                 <img
                     src={randomLogo}
