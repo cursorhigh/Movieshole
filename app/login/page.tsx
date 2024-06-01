@@ -2,7 +2,7 @@
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import Link from "next/link";
-import { useState } from 'react'; // Move useState import to after the "use client" directive
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
     Card,
