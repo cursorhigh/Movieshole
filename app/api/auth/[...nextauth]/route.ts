@@ -1,6 +1,9 @@
-import NextAuth, { AuthOptions } from 'next-auth';
+
+import NextAuth, { AuthOptions, User } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import Credentials from 'next-auth/providers/credentials';
 import axios from 'axios';
+//import { useRouter } from 'next/router';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -8,41 +11,42 @@ export const authOptions: AuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-  ],
-  callbacks: {
-    async jwt({ token, user}) {
-      if (user) {
-        token.id = user.id;
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials, req) => {
         try {
-          const response = await axios.post('http://127.0.0.1:8000/users/google-auth/', {
-            data: token,
+         // const router = useRouter(); = router.pathname === '/login' ? 'http://127.0.0.1:8000/users/loginnow/' : 
+          const postUrl = 'http://127.0.0.1:8000/users/signnow/';
+          const response = await axios.post(postUrl, {
+            email: credentials?.email,
+            password: credentials?.password,
           });
-          if (response.status !== 200) {
-            throw new Error('Failed to process user info on the backend');
+          const data = response.data;
+          if (response.status === 200) {
+            return { id: response.data.id, username: response.data.username, email: response.data.email } as User;
+          } else {
+            throw new Error(data.message || 'Authentication failed'); 
           }
-        } catch (error) {
-          console.error('Error sending user info to Django backend', error);
-          return {};
+        } catch (error: any) {
+          console.error('Error in Credentials authorization:', error);
+          let errorMessage = 'Authentication failed';
+          if (error.response && error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message;
+          }
+          throw new Error(errorMessage);
         }
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token && session.user && token.id) {
-        session.user.id = token.id as string;
-      } else {
-        // If there's no token id, invalidate the session
-        session.user = { id: '', name: null, email: null, image: null };
-      }
-      return session;
-    },
-    async redirect({ url, baseUrl }) {
-      return baseUrl;
-    },
+      },
+    }),
+  ],
+  session: {
+    strategy: 'jwt',
   },
 };
 
 const handler = NextAuth(authOptions);
 
-// Export named handlers for each HTTP method
 export { handler as GET, handler as POST };

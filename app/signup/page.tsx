@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import Link from "next/link";
@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 import LoadingSpinner from '@/components/loading';
-import { TriangleAlert } from 'lucide-react';
+import { CircleCheckBig, TriangleAlert } from 'lucide-react';
 
 import {
     Card,
@@ -18,25 +18,28 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function SignUp() {
+    const router = useRouter();
     const [randomLogo, setRandomLogo] = useState(Math.random() < 0.5 ? '/logo.png' : '/logo2.png');
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isFlipped, setIsFlipped] = useState(Math.random() < 0.5);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const handleGoogleLogin = async () => {
         setLoading(true);
-        await signIn('google');
+        await signIn('google', { callbackUrl:'/',redirect: false });
     };
 
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
     };
     
-    const handleLogin = async () => {
+    const handleSign = async () => {
         setLoading(true);
         setError(null);
 
@@ -65,8 +68,36 @@ export default function SignUp() {
             return;
         }
 
-        setLoading(false);
-    }
+        try {
+            const result = await signIn('credentials', {
+                email,
+                password,
+                callbackUrl: '/', 
+                redirect: false,
+            });
+            if (result && result.status === 200) {
+                setSuccess('Account created succesfully!');
+                setTimeout(() => {
+                    router.replace('/');
+                }, 1000);
+            } else if (result && result.error) {
+                setError(result.error);
+            } else {
+                setError('An unknown error occurred');
+            }
+        } catch (error : any) {
+            console.log(error)
+            if (error.response && error.response.data && error.response.data.message) {
+                setError(error.response.data.message);
+            } else if (error.response && error.response.data && error.response.data.error) {
+                setError(error.response.data.error);
+            } else {
+                setError('An unknown error occurred');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
     const toggleFlip = () => {
         setIsFlipped(!isFlipped);
     };
@@ -89,11 +120,16 @@ export default function SignUp() {
     return (
         <div className="relative">
             {error && (
-               <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
-               <TriangleAlert className="inline-block align-text-bottom" />
-               <span className="ml-2 ">{error}</span>
-           </div>
-
+                <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+                    <TriangleAlert className="inline-block align-text-bottom" />
+                    <span className="ml-2">{error}</span>
+                </div>
+            )}
+            {success && (
+                <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert">
+                    <CircleCheckBig className="inline-block align-text-bottom" />
+                    <span className="ml-2">{success}</span>
+                </div>
             )}
         <div className="flex flex-col justify-between items-center h-screen">
             {loading && <LoadingSpinner />} 
@@ -146,7 +182,7 @@ export default function SignUp() {
                                         </button>
                                     </div>
                                 </div>
-                                <Button  className="w-full" onClick={handleLogin}>
+                                <Button  className="w-full" onClick={handleSign}>
                                     Sign Up
                                 </Button>
                                 <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>

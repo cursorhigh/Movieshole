@@ -13,7 +13,7 @@ const Page = () => {
   useEffect(() => {
     const redirectToCorrectPage = async () => {
       const session = await getSession();
-      if (session && session.user.id) {
+      if (session && session.user.email) {
         router.replace('/');
         setShowContent(true);
       } else {

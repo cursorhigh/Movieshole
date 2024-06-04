@@ -1,8 +1,9 @@
-"use client";
+"use client"
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import Link from "next/link";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import LoadingSpinner from '@/components/loading';
 import { TriangleAlert, CircleCheckBig } from 'lucide-react';
@@ -17,13 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from "next-auth/react";
-import axios from "axios";
 
 export default function Login() {
+    const router = useRouter();
     const [randomLogo, setRandomLogo] = useState(Math.random() < 0.5 ? '/logo.png' : '/logo2.png');
     const [isFlipped, setIsFlipped] = useState(Math.random() < 0.5);
     const [showPassword, setShowPassword] = useState(false);
-    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export default function Login() {
 
     const handleGoogleLogin = async () => {
         setLoading(true);
-        await signIn('google');
+        await signIn('google', { callbackUrl:'/',redirect: false });
     };
 
     const handleLogin = async () => {
@@ -85,14 +85,28 @@ export default function Login() {
         }
 
         try {
-            const response = await axios.post('http://127.0.0.1:8000/users/loginnow/', {
-                email: email,
-                password: password,
+            const result = await signIn('credentials', {
+                email,
+                password,
+                callbackUrl: '/', 
+                redirect: false,
             });
-            setSuccess('Login successful');
+            if (result && result.status === 200) {
+                setSuccess('Login successful');
+                setTimeout(() => {
+                    router.replace('/');
+                }, 1000);
+            } else if (result && result.error) {
+                setError(result.error);
+            } else {
+                setError('An unknown error occurred');
+            }
         } catch (error : any) {
+            console.log(error)
             if (error.response && error.response.data && error.response.data.message) {
                 setError(error.response.data.message);
+            } else if (error.response && error.response.data && error.response.data.error) {
+                setError(error.response.data.error);
             } else {
                 setError('An unknown error occurred');
             }
