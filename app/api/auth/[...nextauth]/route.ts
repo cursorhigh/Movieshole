@@ -13,20 +13,26 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user}) {
       if (user) {
         token.id = user.id;
-        // Send user info to Django backend
         try {
-          await axios.post('http://127.0.0.1:8000/users/google-auth/', {
-            data:token,
+          const response = await axios.post('http://127.0.0.1:8000/users/google-auth/', {
+            data: token,
           });
+          if (response.status !== 200) {
+            throw new Error('Failed to process user info on the backend');
+          }
         } catch (error) {
           console.error('Error sending user info to Django backend', error);
+          return {};
         }
       }
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
+      if (token && session.user && token.id) {
         session.user.id = token.id as string;
+      } else {
+        // If there's no token id, invalidate the session
+        session.user = { id: '', name: null, email: null, image: null };
       }
       return session;
     },

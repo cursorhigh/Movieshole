@@ -13,13 +13,13 @@ const Page = () => {
   useEffect(() => {
     const redirectToCorrectPage = async () => {
       const session = await getSession();
-      if (session && session.user) {
+      if (session && session.user.id) {
         router.replace('/');
         setShowContent(true);
       } else {
         router.replace('/signup');
       }
-      setTimeout(() => setLoading(false), 2160); // Set loading to false after 2 seconds
+      setTimeout(() => setLoading(false), 2160);
     };
 
     redirectToCorrectPage();
