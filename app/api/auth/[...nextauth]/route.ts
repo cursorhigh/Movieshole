@@ -19,8 +19,16 @@ export const authOptions: AuthOptions = {
       },
       authorize: async (credentials, req) => {
         try {
-         // const router = useRouter(); = router.pathname === '/login' ? 'http://127.0.0.1:8000/users/loginnow/' : 
-          const postUrl = 'http://127.0.0.1:8000/users/signnow/';
+          let postUrl = '';
+          const referer = req?.headers?.referer || '';
+
+          if (referer.includes('/login')) {
+              postUrl = 'http://127.0.0.1:8000/users/loginnow/';
+          } else if (referer.includes('localhost:3000/signup')) {
+              postUrl = 'http://127.0.0.1:8000/users/signnow/';
+          } else {
+              throw new Error('Unknown request source');
+          }
           const response = await axios.post(postUrl, {
             email: credentials?.email,
             password: credentials?.password,

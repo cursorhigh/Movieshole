@@ -2,7 +2,7 @@
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import Link from "next/link";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 import LoadingSpinner from '@/components/loading';
@@ -29,6 +29,23 @@ export default function SignUp() {
     const [error, setError] = useState<string | null>(null);
     const [isFlipped, setIsFlipped] = useState(Math.random() < 0.5);
     const [success, setSuccess] = useState<string | null>(null);
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => {
+                setSuccess(null);
+            }, 3000); 
+            return () => clearTimeout(timer);
+        }
+    }, [success]);
 
     const handleGoogleLogin = async () => {
         setLoading(true);

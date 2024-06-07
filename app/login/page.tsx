@@ -1,6 +1,6 @@
 "use client"
 
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import  ThemeSwitcher  from "@/components/ThemeSwitcher";
 import Link from "next/link";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -195,7 +195,7 @@ export default function Login() {
                     </div>
                 </div>
                 <div className="flex justify-center pt-2 mb-8">
-                    <ThemeSwitcher />
+                    <ThemeSwitcher info='no' />
                 </div>
             </div>
         </div>
